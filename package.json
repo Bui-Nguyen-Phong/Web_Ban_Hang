@@ -1,0 +1,26 @@
+{
+  "name": "web-ban-hang",
+  "version": "1.0.0",
+  "description": "Web bán hàng - Fullstack Application",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build"
+  },
+  "keywords": [
+    "ecommerce",
+    "web-ban-hang",
+    "react",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
