@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,6 +22,15 @@ const Navbar = () => {
         </Link>
 
         <div className="navbar-menu">
+          <Link to="/products" className="navbar-link">
+            Sản phẩm
+          </Link>
+
+          <Link to="/cart" className="navbar-cart">
+            🛒 Giỏ hàng
+            {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
+          </Link>
+          
           {isAuthenticated ? (
             <>
               <span className="navbar-user">
@@ -34,6 +45,9 @@ const Navbar = () => {
                   <Link to="/buyer/dashboard" className="navbar-link">
                     Dashboard
                   </Link>
+                  <Link to="/buyer/orders" className="navbar-link">
+                    Đơn hàng
+                  </Link>
                   <Link to="/buyer/profile" className="navbar-link">
                     Tài khoản
                   </Link>
@@ -44,6 +58,9 @@ const Navbar = () => {
                 <>
                   <Link to="/seller/dashboard" className="navbar-link">
                     Dashboard
+                  </Link>
+                  <Link to="/seller/products" className="navbar-link">
+                    Sản phẩm
                   </Link>
                   <Link to="/seller/profile" className="navbar-link">
                     Cửa hàng

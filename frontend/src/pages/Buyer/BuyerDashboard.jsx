@@ -33,7 +33,7 @@ const BuyerDashboard = () => {
           <div className="card-icon">🛒</div>
           <h3>Giỏ Hàng</h3>
           <p>Xem giỏ hàng của bạn</p>
-          <Link to="/buyer/cart" className="card-link">Xem chi tiết →</Link>
+          <Link to="/cart" className="card-link">Xem chi tiết →</Link>
         </div>
 
         <div className="dashboard-card">

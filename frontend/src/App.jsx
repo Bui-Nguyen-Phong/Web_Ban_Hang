@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Navbar from './components/Navbar/Navbar';
 
@@ -15,10 +16,22 @@ import ResetPassword from './components/Auth/ResetPassword';
 // Buyer Pages
 import BuyerDashboard from './pages/Buyer/BuyerDashboard';
 import BuyerProfile from './pages/Buyer/BuyerProfile';
+import BuyerOrders from './pages/Buyer/BuyerOrders';
 
 // Seller Pages
 import SellerDashboard from './pages/Seller/SellerDashboard';
 import SellerProfile from './pages/Seller/SellerProfile';
+import SellerProducts from './pages/Seller/SellerProducts';
+import AddProduct from './pages/Seller/AddProduct';
+import EditProduct from './pages/Seller/EditProduct';
+
+// Product Pages
+import ProductList from './pages/Products/ProductList';
+import ProductDetail from './pages/Products/ProductDetail';
+
+// Cart & Order Pages
+import Cart from './pages/Cart/Cart';
+import Checkout from './pages/Checkout/Checkout';
 
 import './App.css';
 
@@ -26,15 +39,20 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="App">
-          <Navbar />
-          <Routes>
+        <CartProvider>
+          <div className="App">
+            <Navbar />
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            
+            {/* Product Routes - Public */}
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
 
             {/* Protected Routes - Change Password (cho cả buyer và seller) */}
             <Route
@@ -42,6 +60,17 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Cart & Checkout */}
+            <Route path="/cart" element={<Cart />} />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute allowedRoles={['buyer']}>
+                  <Checkout />
                 </ProtectedRoute>
               }
             />
@@ -63,6 +92,22 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/buyer/orders"
+              element={
+                <ProtectedRoute allowedRoles={['buyer']}>
+                  <BuyerOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute allowedRoles={['buyer']}>
+                  <BuyerOrders />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Seller Routes */}
             <Route
@@ -81,11 +126,36 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/seller/products"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <SellerProducts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/products/add"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <AddProduct />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/products/edit/:id"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <EditProduct />
+                </ProtectedRoute>
+              }
+            />
 
             {/* 404 - Not Found */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
+      </CartProvider>
       </AuthProvider>
     </Router>
   );
