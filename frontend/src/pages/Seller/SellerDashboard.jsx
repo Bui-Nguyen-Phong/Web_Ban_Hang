@@ -47,8 +47,11 @@ const SellerDashboard = () => {
       <div className="quick-actions">
         <h3>Hành động nhanh</h3>
         <div className="action-buttons">
-          <Link to="/seller/products/new" className="action-btn seller">
+          <Link to="/seller/products/add" className="action-btn seller">
             ➕ Thêm sản phẩm mới
+          </Link>
+          <Link to="/seller/products" className="action-btn seller">
+            📦 Quản lý sản phẩm
           </Link>
           <Link to="/seller/orders" className="action-btn seller">
             📋 Xem đơn hàng mới

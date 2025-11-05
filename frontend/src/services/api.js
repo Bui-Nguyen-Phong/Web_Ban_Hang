@@ -134,4 +134,241 @@ export const userService = {
   },
 };
 
+// Product Services
+export const productService = {
+  // Lấy danh sách sản phẩm với filter và pagination
+  getProducts: async (params = {}) => {
+    try {
+      const response = await api.get('/products', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy chi tiết sản phẩm
+  getProductById: async (id) => {
+    try {
+      const response = await api.get(`/products/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Tìm kiếm sản phẩm
+  searchProducts: async (keyword, params = {}) => {
+    try {
+      const response = await api.get('/products/search', {
+        params: { keyword, ...params },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lọc sản phẩm theo category
+  getProductsByCategory: async (category, params = {}) => {
+    try {
+      const response = await api.get(`/products/category/${category}`, {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy danh sách sản phẩm của người bán
+  getSellerProducts: async (params = {}) => {
+    try {
+      const response = await api.get('/products/seller/my-products', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Tạo sản phẩm mới
+  createProduct: async (productData) => {
+    try {
+      const response = await api.post('/products', productData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Cập nhật sản phẩm
+  updateProduct: async (id, productData) => {
+    try {
+      const response = await api.put(`/products/${id}`, productData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Xóa sản phẩm
+  deleteProduct: async (id) => {
+    try {
+      const response = await api.delete(`/products/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Upload ảnh sản phẩm
+  uploadProductImage: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await api.post('/products/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Upload nhiều ảnh
+  uploadProductImages: async (files) => {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('images', file);
+      });
+      const response = await api.post('/products/upload-images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+};
+
+// Cart Services
+export const cartService = {
+  // Lấy giỏ hàng
+  getCart: async () => {
+    try {
+      const response = await api.get('/cart');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Thêm sản phẩm vào giỏ hàng
+  addToCart: async (productId, quantity = 1) => {
+    try {
+      const response = await api.post('/cart/items', { productId, quantity });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Cập nhật số lượng sản phẩm trong giỏ
+  updateCartItem: async (itemId, quantity) => {
+    try {
+      const response = await api.put(`/cart/items/${itemId}`, { quantity });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Xóa sản phẩm khỏi giỏ hàng
+  removeFromCart: async (itemId) => {
+    try {
+      const response = await api.delete(`/cart/items/${itemId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Xóa toàn bộ giỏ hàng
+  clearCart: async () => {
+    try {
+      const response = await api.delete('/cart');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+};
+
+// Order Services
+export const orderService = {
+  // Tạo đơn hàng mới
+  createOrder: async (orderData) => {
+    try {
+      const response = await api.post('/orders', orderData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy danh sách đơn hàng của người mua
+  getBuyerOrders: async (params = {}) => {
+    try {
+      const response = await api.get('/orders/buyer/my-orders', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy danh sách đơn hàng của người bán
+  getSellerOrders: async (params = {}) => {
+    try {
+      const response = await api.get('/orders/seller/my-orders', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy chi tiết đơn hàng
+  getOrderById: async (orderId) => {
+    try {
+      const response = await api.get(`/orders/${orderId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Cập nhật trạng thái đơn hàng (seller)
+  updateOrderStatus: async (orderId, status) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/status`, { status });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Hủy đơn hàng (buyer)
+  cancelOrder: async (orderId, reason) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/cancel`, { reason });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+};
+
 export default api;
