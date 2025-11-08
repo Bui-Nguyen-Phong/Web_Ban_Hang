@@ -2,11 +2,28 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import './Cart.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 function Cart() {
   const { cart, loading, totalItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Kiểm tra authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="cart-container">
+        <div className="empty-cart">
+          <div className="empty-cart-icon">🔒</div>
+          <h2>Vui lòng đăng nhập</h2>
+          <p>Bạn cần đăng nhập để xem giỏ hàng</p>
+          <Link to="/login" className="btn-continue-shopping">
+            Đăng nhập
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -35,11 +52,6 @@ function Cart() {
   };
 
   const handleCheckout = () => {
-    if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để thanh toán');
-      navigate('/login');
-      return;
-    }
     navigate('/checkout');
   };
 
@@ -92,8 +104,11 @@ function Cart() {
                 <div className="item-image">
                   <Link to={`/products/${item.product.id}`}>
                     <img
-                      src={item.product.imageUrl || 'https://via.placeholder.com/150'}
+                      src={item.product.imageUrl || item.product.image_url || placeholderImage}
                       alt={item.product.name}
+                      onError={(e) => {
+                        e.target.src = placeholderImage;
+                      }}
                     />
                   </Link>
                 </div>

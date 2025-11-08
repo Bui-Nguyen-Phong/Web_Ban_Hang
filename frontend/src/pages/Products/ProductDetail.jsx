@@ -4,6 +4,7 @@ import { productService } from '../../services/api';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import './ProductDetail.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -31,57 +32,9 @@ const ProductDetail = () => {
     } catch (err) {
       setError('Không thể tải thông tin sản phẩm. Vui lòng thử lại.');
       console.error('Error fetching product detail:', err);
-      // Mock data nếu API chưa có
-      setProduct(getMockProduct(id));
     } finally {
       setLoading(false);
     }
-  };
-
-  const getMockProduct = (id) => {
-    return {
-      id: id,
-      name: 'iPhone 15 Pro Max',
-      description: 'iPhone 15 Pro Max là dòng iPhone cao cấp nhất với thiết kế titan chuẩn hàng không vũ trụ, chip A17 Pro mạnh mẽ, camera 48MP chuyên nghiệp với zoom quang học 5x.',
-      fullDescription: `
-        <h3>Thiết kế đột phá với titan</h3>
-        <p>iPhone 15 Pro Max được chế tác từ titan chuẩn hàng không vũ trụ, mang đến sự bền bỉ vượt trội và trọng lượng siêu nhẹ. Viền mỏng hơn, màn hình lớn hơn.</p>
-        
-        <h3>Chip A17 Pro - Hiệu năng đỉnh cao</h3>
-        <p>Chip A17 Pro 3nm mang đến hiệu năng GPU tăng 20%, CPU nhanh hơn 10%, xử lý mượt mà mọi tác vụ từ chơi game đến quay video 4K.</p>
-        
-        <h3>Hệ thống camera chuyên nghiệp</h3>
-        <p>Camera chính 48MP với cảm biến lớn hơn, zoom quang học 5x, chế độ chụp chân dung thế hệ mới với điều chỉnh độ sâu trường ảnh sau khi chụp.</p>
-        
-        <h3>Màn hình Super Retina XDR</h3>
-        <p>Màn hình OLED 6.7 inch với độ sáng tối đa 2000 nits, ProMotion 120Hz, Always-On Display, Dynamic Island.</p>
-      `,
-      price: 29990000,
-      category: 'Điện thoại',
-      stock: 15,
-      images: [
-        'https://via.placeholder.com/600x600?text=iPhone+15+Pro+Max',
-        'https://via.placeholder.com/600x600?text=Camera',
-        'https://via.placeholder.com/600x600?text=Design',
-        'https://via.placeholder.com/600x600?text=Display',
-      ],
-      seller: {
-        id: 1,
-        name: 'Apple Store Official',
-        rating: 4.9,
-        totalProducts: 156,
-      },
-      specifications: [
-        { label: 'Màn hình', value: '6.7 inch Super Retina XDR OLED' },
-        { label: 'Chip', value: 'Apple A17 Pro (3nm)' },
-        { label: 'RAM', value: '8GB' },
-        { label: 'Dung lượng', value: '256GB / 512GB / 1TB' },
-        { label: 'Camera sau', value: '48MP + 12MP + 12MP' },
-        { label: 'Camera trước', value: '12MP' },
-        { label: 'Pin', value: '4422 mAh' },
-        { label: 'Hệ điều hành', value: 'iOS 17' },
-      ],
-    };
   };
 
   const formatPrice = (price) => {
@@ -89,6 +42,21 @@ const ProductDetail = () => {
       style: 'currency',
       currency: 'VND',
     }).format(price);
+  };
+
+  // TODO: Helper function để lấy ảnh từ nhiều nguồn
+  const getProductImages = () => {
+    // Ưu tiên: images array > imageUrl > image_url > placeholder
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      return product.images;
+    }
+    if (product.imageUrl) {
+      return [product.imageUrl];
+    }
+    if (product.image_url) {
+      return [product.image_url];
+    }
+    return [placeholderImage];
   };
 
   const handleQuantityChange = (type) => {
@@ -175,20 +143,20 @@ const ProductDetail = () => {
       </div>
 
       <div className="product-detail-content">
-        {/* Images Section */}
+        {/* Images Section - TODO: Hiển thị ảnh từ database */}
         <div className="product-images">
           <div className="main-image">
             <img
-              src={product.images && product.images[selectedImage]}
+              src={getProductImages()[selectedImage]}
               alt={product.name}
               onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                e.target.src = placeholderImage;
               }}
             />
           </div>
-          {product.images && product.images.length > 1 && (
+          {getProductImages().length > 1 && (
             <div className="image-thumbnails">
-              {product.images.map((img, index) => (
+              {getProductImages().map((img, index) => (
                 <div
                   key={index}
                   className={`thumbnail ${index === selectedImage ? 'active' : ''}`}

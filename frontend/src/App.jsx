@@ -17,11 +17,17 @@ import ResetPassword from './components/Auth/ResetPassword';
 import BuyerDashboard from './pages/Buyer/BuyerDashboard';
 import BuyerProfile from './pages/Buyer/BuyerProfile';
 import BuyerOrders from './pages/Buyer/BuyerOrders';
+import OrderDetail from './pages/Buyer/OrderDetail';
+import EditProfile from './pages/Buyer/EditProfile';
 
 // Seller Pages
 import SellerDashboard from './pages/Seller/SellerDashboard';
 import SellerProfile from './pages/Seller/SellerProfile';
 import SellerProducts from './pages/Seller/SellerProducts';
+import SellerOrders from './pages/Seller/SellerOrders';
+import SellerOrderDetail from './pages/Seller/SellerOrderDetail';
+import EditSellerProfile from './pages/Seller/EditSellerProfile';
+import RevenueStats from './pages/Seller/RevenueStats';
 import AddProduct from './pages/Seller/AddProduct';
 import EditProduct from './pages/Seller/EditProduct';
 
@@ -93,6 +99,14 @@ function App() {
               }
             />
             <Route
+              path="/buyer/edit-profile"
+              element={
+                <ProtectedRoute allowedRoles={['buyer']}>
+                  <EditProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/buyer/orders"
               element={
                 <ProtectedRoute allowedRoles={['buyer']}>
@@ -104,7 +118,7 @@ function App() {
               path="/orders/:id"
               element={
                 <ProtectedRoute allowedRoles={['buyer']}>
-                  <BuyerOrders />
+                  <OrderDetail />
                 </ProtectedRoute>
               }
             />
@@ -127,10 +141,42 @@ function App() {
               }
             />
             <Route
+              path="/seller/edit-profile"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <EditSellerProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/seller/products"
               element={
                 <ProtectedRoute allowedRoles={['seller']}>
                   <SellerProducts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/orders"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <SellerOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/orders/:id"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <SellerOrderDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/revenue-stats"
+              element={
+                <ProtectedRoute allowedRoles={['seller']}>
+                  <RevenueStats />
                 </ProtectedRoute>
               }
             />

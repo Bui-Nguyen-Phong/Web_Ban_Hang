@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../services/api';
 import './SellerProducts.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 function SellerProducts() {
   const [products, setProducts] = useState([]);
@@ -32,57 +33,17 @@ function SellerProducts() {
 
       const response = await productService.getSellerProducts(params);
       
-      // Mock data nếu API chưa sẵn sàng
-      if (response.products) {
+      // TODO: Dùng data thật từ API
+      if (response.success && response.products) {
         setProducts(response.products);
-        setTotalPages(response.totalPages || 1);
+        setTotalPages(response.pagination?.totalPages || 1);
       } else {
-        // Mock data
-        setProducts([
-          {
-            id: 1,
-            name: 'iPhone 15 Pro Max',
-            category: 'Điện thoại',
-            price: 29990000,
-            stock: 25,
-            imageUrl: 'https://via.placeholder.com/200',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: 2,
-            name: 'MacBook Pro M3',
-            category: 'Laptop',
-            price: 45990000,
-            stock: 10,
-            imageUrl: 'https://via.placeholder.com/200',
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        setProducts([]);
         setTotalPages(1);
       }
     } catch (err) {
       setError(err.message || 'Không thể tải danh sách sản phẩm');
-      // Mock data khi lỗi
-      setProducts([
-        {
-          id: 1,
-          name: 'Sản phẩm mẫu 1',
-          category: 'Điện thoại',
-          price: 10000000,
-          stock: 15,
-          imageUrl: 'https://via.placeholder.com/200',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          name: 'Sản phẩm mẫu 2',
-          category: 'Laptop',
-          price: 20000000,
-          stock: 5,
-          imageUrl: 'https://via.placeholder.com/200',
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -178,24 +139,27 @@ function SellerProducts() {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id}>
+                  <tr key={product.id || product.product_id}>
                     <td>
                       <div className="product-image-cell">
                         <img
-                          src={product.imageUrl || 'https://via.placeholder.com/100'}
+                          src={product.imageUrl || product.image_url || placeholderImage}
                           alt={product.name}
+                          onError={(e) => {
+                            e.target.src = placeholderImage;
+                          }}
                         />
                       </div>
                     </td>
                     <td>
                       <div className="product-name-cell">
-                        <Link to={`/products/${product.id}`}>
+                        <Link to={`/products/${product.id || product.product_id}`}>
                           {product.name}
                         </Link>
                       </div>
                     </td>
                     <td>
-                      <span className="category-badge">{product.category}</span>
+                      <span className="category-badge">{product.category || product.category_id}</span>
                     </td>
                     <td>
                       <span className="price-cell">{formatPrice(product.price)}</span>
@@ -210,14 +174,14 @@ function SellerProducts() {
                             : ''
                         }`}
                       >
-                        {product.stock}
+                        {product.stock || product.stock_quantity || 0}
                       </span>
                     </td>
-                    <td>{formatDate(product.createdAt)}</td>
+                    <td>{formatDate(product.createdAt || product.created_at)}</td>
                     <td>
                       <div className="action-buttons">
                         <Link
-                          to={`/seller/products/edit/${product.id}`}
+                          to={`/seller/products/edit/${product.id || product.product_id}`}
                           className="btn-edit"
                           title="Chỉnh sửa"
                         >

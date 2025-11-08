@@ -49,7 +49,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedData) => {
-    setUser({ ...user, ...updatedData });
+    const newUser = { ...user, ...updatedData };
+    setUser(newUser);
+    // Cập nhật localStorage để đồng bộ
+    localStorage.setItem('user', JSON.stringify(newUser));
   };
 
   const value = {

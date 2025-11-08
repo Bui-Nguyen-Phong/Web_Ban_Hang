@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { orderService } from '../../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { orderService, cartService } from '../../services/api';
 import './BuyerOrders.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 const ORDER_STATUS = {
   pending: { label: 'Chờ xác nhận', color: '#ff9800' },
-  confirmed: { label: 'Đã xác nhận', color: '#2196f3' },
-  shipping: { label: 'Đang giao', color: '#9c27b0' },
+  paid: { label: 'Đã thanh toán', color: '#2196f3' },
+  shipped: { label: 'Đang giao', color: '#9c27b0' },
   delivered: { label: 'Đã giao', color: '#4caf50' },
   cancelled: { label: 'Đã hủy', color: '#f44336' },
 };
 
 function BuyerOrders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -56,14 +58,72 @@ function BuyerOrders() {
   };
 
   const handleCancelOrder = async (orderId) => {
+    const reason = prompt('Vui lòng nhập lý do hủy đơn (không bắt buộc):');
+    if (reason === null) return; // User clicked Cancel
+
     if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
 
     try {
-      await orderService.cancelOrder(orderId, 'Khách hàng hủy đơn');
+      await orderService.cancelOrder(orderId, reason || 'Người mua hủy đơn');
       alert('Hủy đơn hàng thành công');
       loadOrders();
     } catch (err) {
       alert(err.message || 'Không thể hủy đơn hàng');
+    }
+  };
+
+  const handleConfirmDelivery = async (orderId) => {
+    if (!window.confirm('Xác nhận bạn đã nhận được hàng?')) return;
+
+    try {
+      await orderService.confirmDelivery(orderId);
+      alert('Xác nhận nhận hàng thành công!');
+      loadOrders();
+    } catch (err) {
+      alert(err.message || 'Không thể xác nhận nhận hàng');
+    }
+  };
+
+  const handleReorder = async (orderId) => {
+    if (!window.confirm('Thêm lại tất cả sản phẩm trong đơn hàng này vào giỏ hàng?')) return;
+
+    try {
+      // Lấy chi tiết đơn hàng
+      const orderDetail = await orderService.getOrderById(orderId);
+      
+      if (!orderDetail.items || orderDetail.items.length === 0) {
+        alert('Đơn hàng này không có sản phẩm');
+        return;
+      }
+
+      // Thêm từng sản phẩm vào giỏ hàng
+      let addedCount = 0;
+      let failedProducts = [];
+
+      for (const item of orderDetail.items) {
+        try {
+          await cartService.addToCart(item.product_id, item.quantity);
+          addedCount++;
+        } catch (err) {
+          failedProducts.push(item.product_name);
+          console.error(`Failed to add ${item.product_name}:`, err);
+        }
+      }
+
+      if (addedCount > 0) {
+        if (failedProducts.length > 0) {
+          alert(`Đã thêm ${addedCount} sản phẩm vào giỏ hàng.\n\nKhông thể thêm: ${failedProducts.join(', ')}`);
+        } else {
+          alert(`Đã thêm ${addedCount} sản phẩm vào giỏ hàng thành công!`);
+        }
+        // Chuyển đến trang giỏ hàng
+        navigate('/cart');
+      } else {
+        alert('Không thể thêm sản phẩm nào vào giỏ hàng. Có thể sản phẩm đã hết hàng hoặc không còn bán.');
+      }
+    } catch (err) {
+      alert(err.message || 'Không thể mua lại đơn hàng');
+      console.error('Reorder error:', err);
     }
   };
 
@@ -109,14 +169,14 @@ function BuyerOrders() {
           Chờ xác nhận
         </button>
         <button
-          className={filter === 'confirmed' ? 'active' : ''}
-          onClick={() => setFilter('confirmed')}
+          className={filter === 'paid' ? 'active' : ''}
+          onClick={() => setFilter('paid')}
         >
-          Đã xác nhận
+          Đã thanh toán
         </button>
         <button
-          className={filter === 'shipping' ? 'active' : ''}
-          onClick={() => setFilter('shipping')}
+          className={filter === 'shipped' ? 'active' : ''}
+          onClick={() => setFilter('shipped')}
         >
           Đang giao
         </button>
@@ -147,11 +207,17 @@ function BuyerOrders() {
         </div>
       ) : (
         <div className="orders-list">
-          {orders.map((order) => (
-            <div key={order.id} className="order-card">
+          {orders.map((order) => {
+            const orderId = order.order_id || order.id;
+            const orderDate = order.order_date || order.createdAt;
+            const orderAmount = order.total_amount || order.totalAmount;
+            const itemCount = order.itemCount || 0;
+            
+            return (
+            <div key={orderId} className="order-card">
               <div className="order-header">
                 <div className="order-number">
-                  Đơn hàng: <strong>{order.orderNumber}</strong>
+                  Đơn hàng: <strong>ORD{orderId}</strong>
                 </div>
                 <div
                   className="order-status"
@@ -165,42 +231,76 @@ function BuyerOrders() {
               </div>
 
               <div className="order-body">
+                {/* Product Preview Images */}
+                {order.previewItems && order.previewItems.length > 0 && (
+                  <div className="order-products-preview">
+                    {order.previewItems.map((item, index) => (
+                      <div key={index} className="preview-image">
+                        <img 
+                          src={item.product_image || placeholderImage} 
+                          alt={item.product_name}
+                          onError={(e) => {
+                            e.target.src = placeholderImage;
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {itemCount > 3 && (
+                      <div className="preview-more">+{itemCount - 3}</div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="order-info">
                   <div className="info-row">
                     <span className="label">Ngày đặt:</span>
-                    <span>{formatDate(order.createdAt)}</span>
+                    <span>{formatDate(orderDate)}</span>
                   </div>
                   <div className="info-row">
                     <span className="label">Số lượng:</span>
-                    <span>{order.itemCount} sản phẩm</span>
+                    <span>{itemCount} sản phẩm</span>
                   </div>
                   <div className="info-row">
                     <span className="label">Tổng tiền:</span>
                     <span className="order-amount">
-                      {formatPrice(order.totalAmount)}
+                      {formatPrice(orderAmount)}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="order-actions">
-                <Link to={`/orders/${order.id}`} className="btn-view-detail">
+                <Link to={`/orders/${orderId}`} className="btn-view-detail">
                   Xem chi tiết
                 </Link>
                 {order.status === 'pending' && (
                   <button
                     className="btn-cancel-order"
-                    onClick={() => handleCancelOrder(order.id)}
+                    onClick={() => handleCancelOrder(orderId)}
                   >
                     Hủy đơn
                   </button>
                 )}
+                {order.status === 'shipped' && (
+                  <button
+                    className="btn-confirm-delivery"
+                    onClick={() => handleConfirmDelivery(orderId)}
+                  >
+                    Đã nhận hàng
+                  </button>
+                )}
                 {order.status === 'delivered' && (
-                  <button className="btn-reorder">Mua lại</button>
+                  <button 
+                    className="btn-reorder"
+                    onClick={() => handleReorder(orderId)}
+                  >
+                    Mua lại
+                  </button>
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

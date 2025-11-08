@@ -4,11 +4,24 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { orderService } from '../../services/api';
 import './Checkout.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 function Checkout() {
   const { cart, totalPrice, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Kiểm tra authentication
+  if (!isAuthenticated) {
+    navigate('/login');
+    return null;
+  }
+
+  // Kiểm tra giỏ hàng trống
+  if (!cart || cart.length === 0) {
+    navigate('/cart');
+    return null;
+  }
 
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
@@ -292,8 +305,11 @@ function Checkout() {
                 {cart.map((item) => (
                   <div key={item.id} className="order-item">
                     <img
-                      src={item.product.imageUrl || 'https://via.placeholder.com/80'}
+                      src={item.product.imageUrl || item.product.image_url || placeholderImage}
                       alt={item.product.name}
+                      onError={(e) => {
+                        e.target.src = placeholderImage;
+                      }}
                     />
                     <div className="order-item-info">
                       <div className="order-item-name">{item.product.name}</div>

@@ -23,20 +23,10 @@ export const CartProvider = ({ children }) => {
     if (isAuthenticated) {
       loadCart();
     } else {
-      // Load from localStorage nếu chưa đăng nhập
-      const localCart = localStorage.getItem('cart');
-      if (localCart) {
-        setCart(JSON.parse(localCart));
-      }
+      // Xóa cart khi chưa đăng nhập
+      setCart([]);
     }
   }, [isAuthenticated]);
-
-  // Sync cart to localStorage
-  useEffect(() => {
-    if (!isAuthenticated && cart.length > 0) {
-      localStorage.setItem('cart', JSON.stringify(cart));
-    }
-  }, [cart, isAuthenticated]);
 
   const loadCart = async () => {
     if (!isAuthenticated) return;
@@ -49,136 +39,83 @@ export const CartProvider = ({ children }) => {
       setCart(data.items || []);
     } catch (err) {
       setError(err.message);
-      // Use mock data nếu API chưa sẵn sàng
-      const localCart = localStorage.getItem('cart');
-      if (localCart) {
-        setCart(JSON.parse(localCart));
-      }
+      setCart([]);
     } finally {
       setLoading(false);
     }
   };
 
   const addToCart = async (product, quantity = 1) => {
+    if (!isAuthenticated) {
+      alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+      return;
+    }
+
     setError(null);
 
     // Kiểm tra sản phẩm đã có trong giỏ chưa
     const existingItem = cart.find((item) => item.product.id === product.id);
 
-    if (isAuthenticated) {
-      try {
-        if (existingItem) {
-          // Cập nhật số lượng
-          await cartService.updateCartItem(
-            existingItem.id,
-            existingItem.quantity + quantity
-          );
-        } else {
-          // Thêm mới
-          await cartService.addToCart(product.id, quantity);
-        }
-        await loadCart();
-        return true;
-      } catch (err) {
-        setError(err.message);
-        // Fallback to local storage
-        updateLocalCart(product, quantity);
-        return false;
+    try {
+      if (existingItem) {
+        // Cập nhật số lượng
+        await cartService.updateCartItem(
+          existingItem.id,
+          existingItem.quantity + quantity
+        );
+      } else {
+        // Thêm mới
+        await cartService.addToCart(product.id, quantity);
       }
-    } else {
-      // Không đăng nhập - lưu vào localStorage
-      updateLocalCart(product, quantity);
+      await loadCart();
       return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
     }
   };
 
-  const updateLocalCart = (product, quantity) => {
-    setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex(
-        (item) => item.product.id === product.id
-      );
-
-      if (existingIndex > -1) {
-        // Cập nhật số lượng
-        const newCart = [...prevCart];
-        newCart[existingIndex].quantity += quantity;
-        return newCart;
-      } else {
-        // Thêm mới
-        return [
-          ...prevCart,
-          {
-            id: Date.now(),
-            product,
-            quantity,
-          },
-        ];
-      }
-    });
-  };
-
   const updateQuantity = async (itemId, quantity) => {
+    if (!isAuthenticated) return;
+    
     setError(null);
 
     if (quantity < 1) {
       return removeFromCart(itemId);
     }
 
-    if (isAuthenticated) {
-      try {
-        await cartService.updateCartItem(itemId, quantity);
-        await loadCart();
-      } catch (err) {
-        setError(err.message);
-        // Update local cart
-        setCart((prevCart) =>
-          prevCart.map((item) =>
-            item.id === itemId ? { ...item, quantity } : item
-          )
-        );
-      }
-    } else {
-      // Update localStorage
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.id === itemId ? { ...item, quantity } : item
-        )
-      );
+    try {
+      await cartService.updateCartItem(itemId, quantity);
+      await loadCart();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   const removeFromCart = async (itemId) => {
+    if (!isAuthenticated) return;
+    
     setError(null);
 
-    if (isAuthenticated) {
-      try {
-        await cartService.removeFromCart(itemId);
-        await loadCart();
-      } catch (err) {
-        setError(err.message);
-        // Remove from local cart
-        setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
-      }
-    } else {
-      // Remove from localStorage
-      setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
+    try {
+      await cartService.removeFromCart(itemId);
+      await loadCart();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   const clearCart = async () => {
+    if (!isAuthenticated) return;
+    
     setError(null);
 
-    if (isAuthenticated) {
-      try {
-        await cartService.clearCart();
-        setCart([]);
-      } catch (err) {
-        setError(err.message);
-        setCart([]);
-      }
-    } else {
+    try {
+      await cartService.clearCart();
       setCart([]);
-      localStorage.removeItem('cart');
+    } catch (err) {
+      setError(err.message);
+      setCart([]);
     }
   };
 

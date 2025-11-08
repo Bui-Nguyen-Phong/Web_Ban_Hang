@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Cấu hình axios
 const api = axios.create({
@@ -100,7 +100,8 @@ export const userService = {
   getProfile: async () => {
     try {
       const response = await api.get('/users/profile');
-      return response.data;
+      // Backend trả về response.data.user
+      return response.data.user || response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -110,10 +111,14 @@ export const userService = {
   updateProfile: async (userData) => {
     try {
       const response = await api.put('/users/profile', userData);
-      // Cập nhật localStorage
-      const currentUser = authService.getCurrentUser();
-      const updatedUser = { ...currentUser, ...response.data };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Backend trả về response.data.user
+      if (response.data.user) {
+        // Cập nhật localStorage với user data mới
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        return response.data.user;
+      }
+      
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -136,6 +141,16 @@ export const userService = {
 
 // Product Services
 export const productService = {
+  // Lấy danh sách categories
+  getCategories: async () => {
+    try {
+      const response = await api.get('/products/categories');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Lấy danh sách sản phẩm với filter và pagination
   getProducts: async (params = {}) => {
     try {
@@ -220,12 +235,12 @@ export const productService = {
     }
   },
 
-  // Upload ảnh sản phẩm
+  // TODO: Upload ảnh sản phẩm lên Pinata IPFS
   uploadProductImage: async (file) => {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await api.post('/products/upload-image', formData, {
+      const response = await api.post('/upload/product-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -236,18 +251,28 @@ export const productService = {
     }
   },
 
-  // Upload nhiều ảnh
+  // TODO: Upload nhiều ảnh lên Pinata IPFS
   uploadProductImages: async (files) => {
     try {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append('images', file);
       });
-      const response = await api.post('/products/upload-images', formData, {
+      const response = await api.post('/upload/product-images', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // TODO: Xóa ảnh từ Pinata (unpin IPFS)
+  deleteImage: async (ipfsHash) => {
+    try {
+      const response = await api.delete(`/upload/${ipfsHash}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -324,7 +349,8 @@ export const orderService = {
   getBuyerOrders: async (params = {}) => {
     try {
       const response = await api.get('/orders/buyer/my-orders', { params });
-      return response.data;
+      // Backend trả về { success: true, data: { orders: [], pagination: {} } }
+      return response.data.data || response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -334,7 +360,7 @@ export const orderService = {
   getSellerOrders: async (params = {}) => {
     try {
       const response = await api.get('/orders/seller/my-orders', { params });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -344,7 +370,8 @@ export const orderService = {
   getOrderById: async (orderId) => {
     try {
       const response = await api.get(`/orders/${orderId}`);
-      return response.data;
+      // Backend trả về { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -360,10 +387,125 @@ export const orderService = {
     }
   },
 
-  // Hủy đơn hàng (buyer)
+  // Hủy đơn hàng (buyer) - OLD endpoint, cần update
   cancelOrder: async (orderId, reason) => {
     try {
-      const response = await api.put(`/orders/${orderId}/cancel`, { reason });
+      const response = await api.put(`/orders/${orderId}/cancel-buyer`, { reason });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // BUYER: Xác nhận đã nhận hàng
+  confirmDelivery: async (orderId) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/confirm-delivery`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // SELLER: Xác nhận đơn hàng
+  confirmOrder: async (orderId) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/confirm`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // SELLER: Bắt đầu chuẩn bị hàng
+  startProcessing: async (orderId) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/start-processing`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // SELLER: Bắt đầu giao hàng
+  startShipping: async (orderId) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/start-shipping`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // SELLER: Hủy đơn hàng
+  cancelOrderBySeller: async (orderId, reason) => {
+    try {
+      const response = await api.put(`/orders/${orderId}/cancel-seller`, { reason });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Thống kê đơn hàng
+  getOrderStats: async () => {
+    try {
+      const response = await api.get('/orders/buyer/stats');
+      return response.data.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Thống kê đơn hàng seller
+  getSellerOrderStats: async () => {
+    try {
+      const response = await api.get('/orders/seller/stats');
+      return response.data.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Thống kê doanh thu seller (mới)
+  getRevenueStats: async (params = {}) => {
+    try {
+      const response = await api.get('/orders/seller/revenue-stats', { params });
+      return response.data.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+};
+
+// TODO: Payment Services (VNPAY)
+export const paymentService = {
+  // Tạo payment URL VNPAY
+  createVNPayPayment: async (orderId) => {
+    try {
+      const response = await api.post('/payment/vnpay/create', { orderId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Verify payment return từ VNPAY
+  verifyVNPayReturn: async (queryParams) => {
+    try {
+      const response = await api.get('/payment/vnpay/return', {
+        params: queryParams,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy thông tin transaction
+  getTransaction: async (orderId) => {
+    try {
+      const response = await api.get(`/payment/transaction/${orderId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

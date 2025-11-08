@@ -49,6 +49,7 @@ const ProductList = () => {
 
       const response = await productService.getProducts(params);
       
+      // TODO: Dùng data thật từ API
       setProducts(response.products || response.data || []);
       
       if (response.pagination) {
@@ -61,76 +62,10 @@ const ProductList = () => {
     } catch (err) {
       setError('Không thể tải danh sách sản phẩm. Vui lòng thử lại.');
       console.error('Error fetching products:', err);
-      // Sử dụng dữ liệu mẫu nếu API chưa có
-      setProducts(getMockProducts());
+      setProducts([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getMockProducts = () => {
-    return [
-      {
-        id: 1,
-        name: 'iPhone 15 Pro Max',
-        description: 'Điện thoại thông minh cao cấp với chip A17 Pro mạnh mẽ',
-        price: 29990000,
-        category: 'Điện thoại',
-        stock: 15,
-        images: ['https://via.placeholder.com/300x300?text=iPhone+15'],
-        sellerName: 'Apple Store',
-      },
-      {
-        id: 2,
-        name: 'MacBook Pro 14" M3',
-        description: 'Laptop chuyên nghiệp với chip M3 hiệu năng cao',
-        price: 45990000,
-        category: 'Laptop',
-        stock: 8,
-        images: ['https://via.placeholder.com/300x300?text=MacBook+Pro'],
-        sellerName: 'Apple Store',
-      },
-      {
-        id: 3,
-        name: 'Samsung Galaxy S24 Ultra',
-        description: 'Flagship Android với camera 200MP ấn tượng',
-        price: 27990000,
-        category: 'Điện thoại',
-        stock: 20,
-        images: ['https://via.placeholder.com/300x300?text=Galaxy+S24'],
-        sellerName: 'Samsung Official',
-      },
-      {
-        id: 4,
-        name: 'AirPods Pro 2',
-        description: 'Tai nghe không dây chống ồn chủ động',
-        price: 5990000,
-        category: 'Phụ kiện',
-        stock: 50,
-        images: ['https://via.placeholder.com/300x300?text=AirPods'],
-        sellerName: 'Apple Store',
-      },
-      {
-        id: 5,
-        name: 'iPad Pro 11"',
-        description: 'Máy tính bảng với chip M2 mạnh mẽ',
-        price: 21990000,
-        category: 'Máy tính bảng',
-        stock: 12,
-        images: ['https://via.placeholder.com/300x300?text=iPad+Pro'],
-        sellerName: 'Apple Store',
-      },
-      {
-        id: 6,
-        name: 'Dell XPS 13',
-        description: 'Laptop siêu mỏng nhẹ, hiệu năng cao',
-        price: 32990000,
-        category: 'Laptop',
-        stock: 5,
-        images: ['https://via.placeholder.com/300x300?text=Dell+XPS'],
-        sellerName: 'Dell Official',
-      },
-    ];
   };
 
   const handleFilterChange = (newFilters) => {

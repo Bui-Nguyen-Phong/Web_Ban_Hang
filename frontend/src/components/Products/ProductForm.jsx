@@ -2,25 +2,13 @@ import { useState, useEffect } from 'react';
 import { productService } from '../../services/api';
 import './ProductForm.css';
 
-const CATEGORIES = [
-  'Điện thoại',
-  'Laptop',
-  'Máy tính bảng',
-  'Phụ kiện',
-  'Đồng hồ thông minh',
-  'Tai nghe',
-  'Loa',
-  'Camera',
-  'Thiết bị âm thanh',
-  'Khác',
-];
-
 function ProductForm({ product, onSubmit, onCancel }) {
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
-    category: 'Điện thoại',
+    category: '',
     stock: '',
     specifications: '',
     imageUrl: '',
@@ -32,13 +20,35 @@ function ProductForm({ product, onSubmit, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Load categories khi component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await productService.getCategories();
+        if (response.success && response.categories) {
+          setCategories(response.categories);
+          // Set default category
+          if (!formData.category && response.categories.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              category: response.categories[0].name
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('Error loading categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
         description: product.description || '',
         price: product.price || '',
-        category: product.category || 'Điện thoại',
+        category: product.category || (categories.length > 0 ? categories[0].name : ''),
         stock: product.stock || '',
         specifications: product.specifications 
           ? (typeof product.specifications === 'object' 
@@ -73,6 +83,7 @@ function ProductForm({ product, onSubmit, onCancel }) {
     setImagePreviews(previews);
   };
 
+  // TODO: Upload ảnh lên Pinata IPFS
   const handleUploadImages = async () => {
     if (selectedFiles.length === 0) return;
 
@@ -80,17 +91,20 @@ function ProductForm({ product, onSubmit, onCancel }) {
     setError('');
 
     try {
+      // Upload lên Pinata IPFS thông qua API
       const result = await productService.uploadProductImages(selectedFiles);
       
-      // Cập nhật danh sách URL ảnh
+      // TODO: result.imageUrls chứa các URL từ Pinata Gateway
+      // Format: https://gateway.pinata.cloud/ipfs/IPFS_HASH
       setFormData((prev) => ({
         ...prev,
         images: result.imageUrls || [],
-        imageUrl: result.imageUrls?.[0] || '',
+        imageUrl: result.imageUrls?.[0] || '', // Ảnh đầu tiên làm ảnh chính
       }));
 
       alert('Upload ảnh thành công!');
     } catch (err) {
+      // TODO: Nếu Pinata chưa setup, sẽ hiện thông báo hướng dẫn
       setError(err.message || 'Lỗi khi upload ảnh');
     } finally {
       setUploading(false);
@@ -172,12 +186,17 @@ function ProductForm({ product, onSubmit, onCancel }) {
               value={formData.category}
               onChange={handleChange}
               required
+              disabled={categories.length === 0}
             >
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
+              {categories.length === 0 ? (
+                <option value="">Đang tải danh mục...</option>
+              ) : (
+                categories.map((cat) => (
+                  <option key={cat.category_id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 

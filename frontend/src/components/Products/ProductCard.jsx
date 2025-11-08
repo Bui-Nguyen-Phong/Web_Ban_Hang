@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './ProductCard.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 const ProductCard = ({ product }) => {
   const formatPrice = (price) => {
@@ -10,10 +11,13 @@ const ProductCard = ({ product }) => {
     }).format(price);
   };
 
-  const defaultImage = 'https://via.placeholder.com/300x300?text=No+Image';
-  const productImage = product.images && product.images.length > 0 
-    ? product.images[0] 
-    : defaultImage;
+  // TODO: Hiển thị ảnh thực tế từ database
+  // Ưu tiên: imageUrl > images[0] > placeholder
+  
+  const productImage = product.imageUrl || 
+                       (product.images && product.images.length > 0 ? product.images[0] : null) ||
+                       product.image_url || 
+                       placeholderImage;
 
   return (
     <div className="product-card">
@@ -24,7 +28,7 @@ const ProductCard = ({ product }) => {
             alt={product.name}
             className="product-image"
             onError={(e) => {
-              e.target.src = defaultImage;
+              e.target.src = placeholderImage;
             }}
           />
           {product.stock === 0 && (
