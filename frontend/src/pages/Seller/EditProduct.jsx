@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { productService } from '../../services/api';
 import ProductForm from '../../components/Products/ProductForm';
 import './EditProduct.css';
+import placeholderImage from '../../assets/images/demo_8.jpg';
 
 function EditProduct() {
   const { id } = useParams();
@@ -36,8 +37,8 @@ function EditProduct() {
           'Màn hình': '6.7 inch',
           'RAM': '8GB',
         },
-        imageUrl: 'https://via.placeholder.com/500',
-        images: ['https://via.placeholder.com/500'],
+        imageUrl: placeholderImage,
+        images: [placeholderImage],
       });
     } finally {
       setLoading(false);

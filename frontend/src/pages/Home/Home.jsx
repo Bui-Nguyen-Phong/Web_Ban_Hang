@@ -1,21 +1,26 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './Home.css';
 
 const Home = () => {
+  const { user } = useAuth();
+
   return (
     <div className="home-container">
       <div className="hero-section">
         <h1>Chào mừng đến với Web Bán Hàng</h1>
         <p>Nền tảng mua bán trực tuyến dành cho mọi người</p>
-        <div className="hero-buttons">
-          <Link to="/register" className="hero-btn primary">
-            Đăng ký ngay
-          </Link>
-          <Link to="/login" className="hero-btn secondary">
-            Đăng nhập
-          </Link>
-        </div>
+        {!user && (
+          <div className="hero-buttons">
+            <Link to="/register" className="hero-btn primary">
+              Đăng ký ngay
+            </Link>
+            <Link to="/login" className="hero-btn secondary">
+              Đăng nhập
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="features-section">
@@ -51,17 +56,21 @@ const Home = () => {
             <div className="role-icon">🛒</div>
             <h3>Người Mua</h3>
             <p>Khám phá hàng nghìn sản phẩm chất lượng</p>
-            <Link to="/register" className="role-btn">
-              Đăng ký mua hàng
-            </Link>
+            {!user && (
+              <Link to="/register" className="role-btn">
+                Đăng ký mua hàng
+              </Link>
+            )}
           </div>
           <div className="role-card seller">
             <div className="role-icon">🏪</div>
             <h3>Người Bán</h3>
             <p>Mở cửa hàng và kinh doanh online</p>
-            <Link to="/register" className="role-btn">
-              Đăng ký bán hàng
-            </Link>
+            {!user && (
+              <Link to="/register" className="role-btn">
+                Đăng ký bán hàng
+              </Link>
+            )}
           </div>
         </div>
       </div>

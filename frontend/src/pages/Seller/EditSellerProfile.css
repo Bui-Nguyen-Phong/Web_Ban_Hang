@@ -1,0 +1,24 @@
+/* Override colors for Seller Edit Profile */
+
+.edit-profile-container.seller .btn-save.seller {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.edit-profile-container.seller .btn-save.seller:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.edit-profile-container.seller .form-group input:focus,
+.edit-profile-container.seller .form-group textarea:focus {
+  border-color: #f5576c;
+  box-shadow: 0 0 0 3px rgba(245, 87, 108, 0.1);
+}
+
+.edit-profile-container.seller .edit-profile-header h1 {
+  color: #f5576c;
+}
+
+.edit-profile-container.seller .btn-back:hover {
+  background-color: #fff0f3;
+  color: #f5576c;
+}

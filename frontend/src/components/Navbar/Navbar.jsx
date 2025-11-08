@@ -62,6 +62,12 @@ const Navbar = () => {
                   <Link to="/seller/products" className="navbar-link">
                     Sản phẩm
                   </Link>
+                  <Link to="/seller/orders" className="navbar-link">
+                    Đơn hàng
+                  </Link>
+                  <Link to="/seller/revenue-stats" className="navbar-link">
+                    Thống kê
+                  </Link>
                   <Link to="/seller/profile" className="navbar-link">
                     Cửa hàng
                   </Link>

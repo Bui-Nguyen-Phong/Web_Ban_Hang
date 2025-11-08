@@ -25,6 +25,10 @@ jspm_packages/
 .env.test
 .env.production
 
+# Google Drive API Credentials - KHÔNG commit file này
+google-drive-credentials.json
+**/google-drive-credentials.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

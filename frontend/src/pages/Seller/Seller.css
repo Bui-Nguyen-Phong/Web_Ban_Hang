@@ -229,6 +229,39 @@
   margin: 0;
 }
 
+/* Info Display Styles */
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.info-group {
+  margin-bottom: 15px;
+}
+
+.info-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.info-value {
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  color: #333;
+  margin: 0;
+  min-height: 20px;
+}
+
 .form-note {
   display: block;
   margin-top: 5px;

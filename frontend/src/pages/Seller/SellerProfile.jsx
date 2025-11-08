@@ -1,177 +1,98 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { userService } from '../../services/api';
 import './Seller.css';
 
 const SellerProfile = () => {
-  const { user, updateUser } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { user } = useAuth();
+  const location = useLocation();
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        fullName: user.fullName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        address: user.address || '',
-      });
-    }
-  }, [user]);
+    loadProfile();
+  }, [location]); // Reload when location changes (khi quay lại từ trang edit)
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const loadProfile = async () => {
     setLoading(true);
-    setMessage({ type: '', text: '' });
-
     try {
-      const updatedData = await userService.updateProfile(formData);
-      updateUser(updatedData);
-      setMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
-      setIsEditing(false);
+      const data = await userService.getProfile();
+      setProfileData(data);
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Cập nhật thất bại' });
+      console.error('Error loading profile:', error);
+      // Fallback to user from context if API fails
+      setProfileData(user);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData({
-      fullName: user.fullName || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      address: user.address || '',
-    });
-    setMessage({ type: '', text: '' });
-  };
+  if (loading) {
+    return (
+      <div className="profile-container">
+        <div className="loading">Đang tải thông tin...</div>
+      </div>
+    );
+  }
+
+  const displayUser = profileData || user;
 
   return (
     <div className="profile-container">
       <h1>Thông Tin Cửa Hàng</h1>
 
-      {message.text && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
-      )}
-
       <div className="profile-card">
         <div className="profile-header">
           <div className="profile-avatar seller">
-            {user?.fullName?.charAt(0).toUpperCase()}
+            {displayUser?.full_name?.charAt(0).toUpperCase() || displayUser?.fullName?.charAt(0).toUpperCase() || 'S'}
           </div>
           <div className="profile-info">
-            <h2>{user?.fullName}</h2>
+            <h2>{displayUser?.full_name || displayUser?.fullName}</h2>
             <p className="role-badge seller">Người Bán</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="profile-section">
-            <h3>Thông tin cơ bản</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Tên cửa hàng</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                  />
-                ) : (
-                  <p className="form-value">{user?.fullName}</p>
-                )}
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <p className="form-value">{user?.email}</p>
-                <small className="form-note">Email không thể thay đổi</small>
-              </div>
+        <div className="profile-section">
+          <h3>Thông tin cơ bản</h3>
+          
+          <div className="info-row">
+            <div className="info-group">
+              <label>Tên cửa hàng</label>
+              <p className="info-value">{displayUser?.full_name || displayUser?.fullName || 'Chưa cập nhật'}</p>
             </div>
+          </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Số điện thoại</label>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                  />
-                ) : (
-                  <p className="form-value">{user?.phone}</p>
-                )}
-              </div>
+          <div className="info-row">
+            <div className="info-group">
+              <label>Email</label>
+              <p className="info-value">{displayUser?.email || 'Chưa cập nhật'}</p>
             </div>
+          </div>
 
-            <div className="form-group">
+          <div className="info-row">
+            <div className="info-group">
+              <label>Số điện thoại</label>
+              <p className="info-value">{displayUser?.phone_number || displayUser?.phone || 'Chưa cập nhật'}</p>
+            </div>
+          </div>
+
+          <div className="info-row">
+            <div className="info-group full-width">
               <label>Địa chỉ cửa hàng</label>
-              {isEditing ? (
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                  rows="3"
-                />
-              ) : (
-                <p className="form-value">{user?.address}</p>
-              )}
+              <p className="info-value">{displayUser?.address || 'Chưa cập nhật'}</p>
             </div>
           </div>
+        </div>
 
-          <div className="profile-actions">
-            {isEditing ? (
-              <>
-                <button type="submit" className="btn-primary seller" disabled={loading}>
-                  {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={handleCancel}
-                  disabled={loading}
-                >
-                  Hủy
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="btn-primary seller"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Chỉnh sửa thông tin
-                </button>
-                <Link to="/change-password" className="btn-secondary">
-                  Đổi mật khẩu
-                </Link>
-              </>
-            )}
-          </div>
-        </form>
+        <div className="profile-actions">
+          <Link to="/seller/edit-profile" className="btn-primary seller">
+            Chỉnh sửa thông tin
+          </Link>
+          <Link to="/change-password" className="btn-secondary">
+            Đổi mật khẩu
+          </Link>
+        </div>
       </div>
     </div>
   );

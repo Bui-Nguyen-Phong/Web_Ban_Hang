@@ -33,7 +33,7 @@ const SellerDashboard = () => {
           <div className="card-icon">💰</div>
           <h3>Doanh Thu</h3>
           <p>Thống kê doanh thu bán hàng</p>
-          <Link to="/seller/revenue" className="card-link">Xem chi tiết →</Link>
+          <Link to="/seller/revenue-stats" className="card-link">Xem chi tiết →</Link>
         </div>
 
         <div className="dashboard-card">
